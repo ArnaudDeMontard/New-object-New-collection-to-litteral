@@ -12,7 +12,7 @@ $c:=New collection("azerty"; 123; False; New object("txt1"; "azerty"); New colle
 ```
 result:
 ```4d
-$c:=["azerty"; 123; False; {txt1: "azerty"}; [1; 2; 3]]
+$o:={txt1: "azerty"; ob: {txt2: "azerty"}}
 $c:=["azerty"; 123; False; {txt1: "azerty"}; [1; 2; 3]]
 ```
 
