@@ -1,0 +1,23 @@
+//%attributes = {}
+//MACRO_newToLitteral
+//calls newToLitteral to convert:
+//a/ selected code if there is
+//d/ the whole method code if nothing's selected
+
+var $newCode; $oldCode : Text
+var $selectionType : Integer
+
+$selectionType:=Highlighted method text:K5:18
+GET MACRO PARAMETER:C997($selectionType; $oldCode)
+
+If ($oldCode="")
+	$selectionType:=Full method text:K5:17
+	GET MACRO PARAMETER:C997($selectionType; $oldCode)
+End if 
+
+If ($oldCode#"")
+	$newCode:=newToLitteral($oldCode)
+	If ($newCode#$oldCode)
+		SET MACRO PARAMETER:C998($selectionType; $newCode)
+	End if 
+End if 
