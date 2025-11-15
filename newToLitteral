@@ -1,0 +1,88 @@
+//%attributes = {}
+//newToLitteral(code_t) -> txt
+//convertit la notation New object/New collection en littéral
+
+//µ Arnaud * 15/11/2025 * finalisée
+//© Arnaud * 15/01/2020 
+
+#DECLARE($code_t : Text)->$newCode_t : Text
+
+$newCode_t:=$code_t
+
+//regex captures not embedded
+$rxNewObj:="New object\\(([^()]+)\\)"  //no token… 
+$rxNewCol:="New collection\\(([^()]+)\\)"
+$rxLittObj:="{[^{]+}"
+$rxLittCol:="\\[([^[]+)]"
+ARRAY LONGINT:C221($pos_al; 0x0000)
+ARRAY LONGINT:C221($len_al; 0x0000)
+
+If (False:C215)  //todo: litteral to New object/New collection (convert to older 4D version)
+	
+	$prefix_l:=Length:C16("New object(")
+	$start:=1
+	While (Match regex:C1019($rxLittObj; $newCode_t; $start; $pos_l; $end_l))
+		$inside:=Substring:C12($newCode_t; $pos_l+$prefix_l)
+		$start:=$pos_l+$end_l
+	End while 
+	$prefix_l:=Length:C16("New collection(")
+	$start:=1
+	While (Match regex:C1019($rxLittCol; $newCode_t; $start; $pos_l; $end_l))
+		
+		$start:=$pos_l+$end_l
+	End while 
+	
+Else   //New object/New collection to litteral 
+	
+	$start:=1
+	While (Match regex:C1019($rxNewObj; $newCode_t; $start; $pos_al; $len_al))
+		$old:=Substring:C12($newCode_t; $pos_al{0}; $len_al{0})
+		$inside:=Substring:C12($newCode_t; $pos_al{1}; $len_al{1})
+		$c:=Split string:C1554($inside; ";"; sk trim spaces:K86:2)
+		If ($c.length%2#0)  //paires {prop:valeur}
+			ALERT:C41("wrong property:value pair in "+$old)
+			return $code_t
+		End if 
+		$literal_t:="{"
+		For ($i; 0; $c.length-1; 2)
+			$prop:=$c[$i]
+			$prop:=Substring:C12($prop; 2; Length:C16($prop)-2)
+			$val:=$c[$i+1]
+			$literal_t+=$prop
+			$literal_t+=": "
+			$literal_t+=$val
+			If (($i+1)<($c.length-1))
+				$literal_t+="; "
+			End if 
+		End for 
+		$literal_t+="}"
+		$newCode_t:=Delete string:C232($newCode_t; $pos_al{0}; $len_al{0})  // (source ; positionDépart ; nbCars )
+		$newCode_t:=Insert string:C231($newCode_t; $literal_t; $pos_al{0})  // (source ; insertion ; positionDépart )
+		$start:=1  //restart from 1 (most embedded 1rst)
+	End while 
+	//calls without args
+	$newCode_t:=Replace string:C233($newCode_t; "New object()"; "{}"; *)
+	$newCode_t:=Replace string:C233($newCode_t; "New object"; "{}"; *)
+	
+	$start:=1
+	While (Match regex:C1019($rxNewCol; $newCode_t; $start; $pos_al; $len_al))
+		$old:=Substring:C12($newCode_t; $pos_al{0}; $len_al{0})
+		$inside:=Substring:C12($newCode_t; $pos_al{1}; $len_al{1})
+		$c:=Split string:C1554($inside; ";"; sk trim spaces:K86:2)
+		$literal_t:="["
+		For ($i; 0; $c.length-1)
+			$val:=$c[$i]
+			$literal_t+=$val
+			If ($i<($c.length-1))
+				$literal_t+="; "
+			End if 
+		End for 
+		$literal_t+="]"
+		$newCode_t:=Delete string:C232($newCode_t; $pos_al{0}; $len_al{0})  // (source ; positionDépart ; nbCars )
+		$newCode_t:=Insert string:C231($newCode_t; $literal_t; $pos_al{0})  // (source ; insertion ; positionDépart )
+		$start:=1  //restart from 1 (most embedded 1rst)
+	End while 
+	//calls without args
+	$newCode_t:=Replace string:C233($newCode_t; "New collection()"; "[]"; *)
+	$newCode_t:=Replace string:C233($newCode_t; "New collection"; "[]"; *)
+End if 
