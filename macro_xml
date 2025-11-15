@@ -1,0 +1,3 @@
+    <macro name="NewToLitteral/|" in_toolbar="true" version="2">
+      <text><method>MACRO_newToLitteral</method></text>
+    </macro>
